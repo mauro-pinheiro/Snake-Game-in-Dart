@@ -3,41 +3,45 @@ import 'dart:math';
 import 'dart:collection';
 import 'dart:async';
 
+Keyboard keyboard = Keyboard();
+
 const int CELL_SIZE = 10;
 
 CanvasElement canvas;
 CanvasRenderingContext2D ctx;
-Keyboard keyboard = new Keyboard();
 
-void main() {
+void main(){
   canvas = querySelector('#canvas');
   ctx = canvas.getContext('2d');
-  //drawCell(new Point(10,10), 'salmon');
 
-  new Game()..run();
+  Game()..run();
 }
 
-void drawCell(Point coords, String color) {
-  ctx..fillStyle = color
-    ..strokeStyle = "white";
+void drawCell(Point coords, String color){
+  ctx..fillStyle = color..strokeStyle = "white";
 
   final int x = coords.x * CELL_SIZE;
   final int y = coords.y * CELL_SIZE;
 
-  ctx..fillRect(x, y, CELL_SIZE, CELL_SIZE)
-    ..strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+  ctx..fillRect(x,y,CELL_SIZE,CELL_SIZE)
+  ..strokeRect(x,y,CELL_SIZE,CELL_SIZE);
 }
 
 void clear(){
-  ctx..fillStyle = "white"..fillRect(0, 0, canvas.width, canvas.height);
+  ctx..fillStyle = "white"
+  ..fillRect(0, 0, canvas.width, canvas.height);
 }
 
 class Keyboard{
-  HashMap<int,num> _keys = new HashMap<int,num>();
+  HashMap<int, num> _keys = HashMap<int, num>();
 
   Keyboard(){
     window.onKeyDown.listen((KeyboardEvent event){
       _keys.putIfAbsent(event.keyCode, () => event.timeStamp);
+    });
+
+    window.onKeyUp.listen((KeyboardEvent event){
+      _keys.remove(event.keyCode);
     });
   }
 
@@ -45,20 +49,23 @@ class Keyboard{
 }
 
 class Snake{
-  static const Point LEFT = const Point(-1,0);
-  static const Point RIGHT = const Point(1,0);
-  static const Point UP = const Point(0,-1);
-  static const Point DOWN = const Point(0,1);
+  //directions
+  static const Point LEFT = Point(-1,0);
+  static const Point RIGHT = Point(1,0);
+  static const Point UP = Point(0,-1);
+  static const Point DOWN = Point(0,1);
 
   static const int START_LENGTH = 6;
 
   List<Point> _body;
 
+  //curret travel direction
   Point _dir = RIGHT;
 
   Snake(){
     int i = START_LENGTH - 1;
-    _body = new List<Point>.generate(START_LENGTH, (int index) => new Point(i--,0));
+    _body = List<Point>.generate(START_LENGTH,
+     (int index) => Point(i--,0));
   }
 
   Point get head => _body.first;
@@ -84,7 +91,7 @@ class Snake{
   }
 
   void _move(){
-    //add new head segment
+    //add a new head segment
     grow();
 
     //remove the tail segment
@@ -92,9 +99,9 @@ class Snake{
   }
 
   void _draw(){
-    //starting with the head, draaw each body segment
+    //starting with the head, draw each body segment
     for(Point p in _body){
-      drawCell(p,"green");
+      drawCell(p, "green");
     }
   }
 
@@ -119,7 +126,7 @@ class Game{
   static const num GAME_SPEED = 50;
   num _lastTimeStamp = 0;
 
-  // a few convenience variabla to simplify calculations
+  //a few convenience variable to simplify calculations
   int _rightEdgeX;
   int _bottomEdgeY;
 
@@ -129,6 +136,8 @@ class Game{
   Game(){
     _rightEdgeX = canvas.width ~/ CELL_SIZE;
     _bottomEdgeY = canvas.height ~/ CELL_SIZE;
+
+    init();
   }
 
   void init(){
@@ -137,9 +146,9 @@ class Game{
   }
 
   Point _randomPoint(){
-    Random random = new Random();
-    return new Point(random.nextInt(_rightEdgeX),
-     random.nextInt(_bottomEdgeY));
+    Random random = Random();
+    return Point(random.nextInt(_rightEdgeX),
+    random.nextInt(_bottomEdgeY));
   }
 
   void _checkForCollisions(){
@@ -149,14 +158,14 @@ class Game{
       _food = _randomPoint();
     }
 
-    // check death conditions
+    //check death conditions
     if(_snake.head.x <= -1 ||
-     _snake.head.x >= _rightEdgeX ||
-     _snake.head.y <= -1 ||
-     _snake.head.y >= _bottomEdgeY ||
-     _snake.checkForBodyCollision()){
-       init();
-     }
+    _snake.head.x >= _rightEdgeX ||
+    _snake.head.y <= -1 ||
+    _snake.head.y >= _bottomEdgeY ||
+    _snake.checkForBodyCollision()){
+      init();
+    }
   }
 
   Future run() async{
@@ -169,7 +178,7 @@ class Game{
     if(diff > GAME_SPEED){
       _lastTimeStamp = delta;
       clear();
-      drawCell(_food, "blue");
+      drawCell(_food,"blue");
       _snake.update();
       _checkForCollisions();
     }
